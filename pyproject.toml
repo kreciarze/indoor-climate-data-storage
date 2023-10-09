@@ -1,0 +1,134 @@
+[tool.poetry]
+name = "weather-records-service"
+version = "0.0.0"
+description = ""
+authors = ["Piotr Karaś <pepe500p@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+dumb-init = "^1.2.5.post1"
+fastapi = "^0.100.0"
+httpx = "^0.24.1"
+poetry-dynamic-versioning = "^0.25.0"
+pydantic = "^2.3.0"
+pydantic-settings = "^2.0.2"
+starlette = "^0.27.0"
+uvicorn = "^0.23.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.1.0"
+dotenv-linter = "^0.4.0"
+fawltydeps = "^0.13.1"
+flake8 = "^6.0.0"
+flake8-bandit = "^4.1.1"
+flake8-bugbear = "^23.2.13"
+flake8-builtins = "^2.1.0"
+flake8-commas = "^2.1.0"
+flake8-comprehensions = "^3.10.1"
+flake8-debugger = "^4.1.2"
+flake8-isort = "^6.0.0"
+flake8-print = "^5.0.0"
+flake8-pyproject = "^1.2.2"
+flake8-pytest = "^1.4"
+flake8-pytest-style = "^1.7.2"
+ipython = "^8.14.0"
+isort = {version = "^5.12.0", extras = ["colors"]}
+mypy = "^1.0.1"
+pytest = "^7.2.1"
+pytest-asyncio = "^0.20.3"
+pytest-cov = "^4.0.0"
+pytest-mock = "^3.11.1"
+python-dotenv = "^1.0.0"
+pytest-lazy-fixture = "^0.6.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.black]
+line-length = 120
+
+# coverage settings
+[tool.coverage.run]
+branch = true
+omit = [
+    "*urls*",
+    "*test*",
+    "*admin*",
+    "*__init__*",
+    "./app/routes/*",
+    "/usr/local/src/*",
+    "*.venv*",
+    "get-pip.py",
+]
+
+[tool.fawltydeps]
+code = ["src"]
+deps = ["pyproject.toml"]
+ignore_unused = [
+    # used in Dockerfile
+    "dumb-init",
+    "uvicorn",
+
+    # Dev dependencies. This list should contain ALL of them!
+    "black",
+    "dotenv-linter",
+    "fawltydeps",
+    "flake8",
+    "flake8-bandit",
+    "flake8-bugbear",
+    "flake8-builtins",
+    "flake8-commas",
+    "flake8-comprehensions",
+    "flake8-debugger",
+    "flake8-isort",
+    "flake8-print",
+    "flake8-pyproject",
+    "flake8-pytest",
+    "flake8-pytest-style",
+    "ipython",
+    "isort",
+    "mypy",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-lazy-fixture",
+    "python-dotenv",
+]
+
+[tool.flake8]
+# W503 == line break before binary operator. Conflicts with W504 - line break after binary operator.
+ignore = ["W503"]
+max-line-length = 120
+
+[tool.isort]
+line_length = 120
+order_by_type = false
+profile = "black"
+
+[tool.mypy]
+disallow_untyped_defs = true
+ignore_missing_imports = true
+no_implicit_optional = false
+disable_error_code = "misc"
+exclude = ["/migrations/", "/tests/"]
+
+[[tool.mypy.overrides]]
+module = [
+    "aws_health.*",
+    "maintenance.*",
+    "*.tests.*",
+    "*.enums",
+]
+ignore_errors = true
+
+# pytest settings
+[tool.pytest.ini_options]
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--strict-markers -p no:warnings --cov=. --cov-fail-under=90 --cov-config=.coveragerc"
+markers = [
+    "integration: marks tests as integration (deselect with '-m \"not integration\"' to have just a quick check)",
+    "serial",
+    "print_queries: prints tests queries",
+]
+asyncio_mode = "auto"

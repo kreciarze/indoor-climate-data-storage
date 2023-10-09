@@ -1,0 +1,27 @@
+version: "3.8"
+x-device-management: &weather-records-service-config
+  environment:
+    - FLAVOR=localdev
+  image: weather-records-service-dev
+  build:
+    context: ./
+    args:
+      - BUILD_COMMIT_SHA=localdev
+  volumes:
+    - "./:/code/"
+  env_file:
+    - .env
+
+
+services:
+  fastapi:
+    <<: *weather-records-service-config
+    command: >-
+      bash -c "uvicorn main_fastapi:app --host 0.0.0.0 --reload --port 80"
+    ports:
+      - ${FASTAPI_HOST_PORT:-8410}:80
+
+  debugging:
+    <<: *weather-records-service-config
+    command: >-
+      bash -c "tail -f /dev/null"
