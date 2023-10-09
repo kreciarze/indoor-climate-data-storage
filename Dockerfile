@@ -34,12 +34,6 @@ RUN poetry config virtualenvs.create false \
   && poetry install --only=main --no-interaction --no-ansi
 
 
-# Installs `chamber` for secure access to AWS SSM Parameter Store
-## Works fine in Docker on Macos m1, too.
-RUN wget 'https://github.com/segmentio/chamber/releases/download/v2.10.12/chamber-v2.10.12-linux-amd64' \
-      -O /usr/local/bin/chamber && \
-        chmod a+x /usr/local/bin/chamber
-
 ARG BUILD_COMMIT_SHA
 ENV BUILD_COMMIT_SHA ${BUILD_COMMIT_SHA:-}
 
@@ -55,5 +49,5 @@ WORKDIR /code/src
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
 
 # Runs the production server
-CMD ["ddtrace-run", "uvicorn", "main_fastapi:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["ddtrace-run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
 

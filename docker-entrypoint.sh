@@ -10,14 +10,6 @@ else
   echo "* WARNING: No FLAVOR, environment may not load properly."
 fi
 
-if [[ ${CHAMBER_ENABLED:-true} == false ]]; then
-  echo "* CHAMBER_ENABLED is ${CHAMBER_ENABLED@Q} so skipping attempt to load environment via chamber"
-else
-  chamber_environments="global $FLAVOR $APP ${FLAVOR:+$APP-$FLAVOR}"
-  echo "* Attempting to load environment variables from SSM parameter store via chamber. Environments: $chamber_environments"
-  source <(chamber -r 3 exec $chamber_environments -- sh -c 'export -p')
-fi
-
 if [[ $1 =~ ^(/bin/)?(ba)?sh$ ]]; then
   echo "* First CMD argument is a shell: $1"
   echo "* Running: exec ${@@Q}"

@@ -6,13 +6,17 @@ authors = ["Piotr Karaś <pepe500p@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+alembic = "^1.10.2"
+asyncpg = "^0.27.0"
 dumb-init = "^1.2.5.post1"
 fastapi = "^0.100.0"
 httpx = "^0.24.1"
 poetry-dynamic-versioning = "^0.25.0"
 pydantic = "^2.3.0"
 pydantic-settings = "^2.0.2"
+sqlalchemy = "^2.0.5.post1"
 starlette = "^0.27.0"
+starlette-context = "^0.3.6"
 uvicorn = "^0.23.1"
 
 [tool.poetry.group.dev.dependencies]
@@ -97,8 +101,9 @@ ignore_unused = [
 ]
 
 [tool.flake8]
+# S101 == Use of assert detected. Conflicts with pytest.
 # W503 == line break before binary operator. Conflicts with W504 - line break after binary operator.
-ignore = ["W503"]
+ignore = ["S101", "W503"]
 max-line-length = 120
 
 [tool.isort]
