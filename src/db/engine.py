@@ -8,4 +8,7 @@ engine = create_async_engine(
     echo=settings.debug,
     poolclass=NullPool,
 )
-PostgresSession = async_sessionmaker(bind=engine)
+DBSession = async_sessionmaker(
+    autoflush=False,
+    bind=engine,
+)

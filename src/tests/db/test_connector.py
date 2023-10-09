@@ -1,36 +1,19 @@
-from sqlalchemy import select
+import pytest
 
 from db.connector import DBConnector
-from db.engine import PostgresSession
-from db.models.user import User, UserData
+from db.exceptions import UserNotExists
 
 
-async def test_register_user(db_connector: DBConnector) -> None:
-    user_data = UserData(login="test_login", password="test_password")  # noqa: S106
-    
-    await db_connector.register_user(user_data=user_data)
+async def test_users_operations(db_connector: DBConnector) -> None:
+    test_user_data = {
+        "login": "test_login",
+        "password": "test_password",  # noqa: S106
+    }
 
-    async with PostgresSession() as session:
-        result = await session.scalars(select(User).where(User.login == user_data.login))
-        user = result.first()
-    
-    assert user is not None
+    with pytest.raises(UserNotExists):
+        await db_connector.get_user(**test_user_data)
 
+    await db_connector.register_user(**test_user_data)
 
-async def test_user_exists(db_connector: DBConnector) -> None:
-    user_data = UserData(login="test_login", password="test_password")  # noqa: S106
-    
-    do_exists = await db_connector.user_exists(user_data=user_data)
-    assert do_exists is False
-    
-    async with PostgresSession() as session:
-        user = User(
-            login=user_data.login,
-            password_hash="test_password_hash",
-            devices=[],
-        )
-        session.add(user)
-        await session.commit()
-
-    do_exists = await db_connector.user_exists(user_data=user_data)
-    assert do_exists is True
+    user = await db_connector.get_user(**test_user_data)
+    assert user.login == "test_login"

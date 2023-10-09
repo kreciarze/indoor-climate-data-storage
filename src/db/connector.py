@@ -1,76 +1,155 @@
 import hashlib
-from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import AwareDatetime
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
-from db.engine import PostgresSession
-from db.models.record import Record, RecordModel
-from db.models.user import User, UserData
-
-
-class RecordQuery(BaseModel):
-    device_id: int | None = None
-    start_date: datetime | None = None
-    end_date: datetime | None = None
+from db.engine import DBSession
+from db.exceptions import DeviceNotExists, LoginAlreadyExists, UserNotExists
+from db.models.device import Device
+from db.models.record import Record
+from db.models.user import User
 
 
 class DBConnector:
-    def __init__(self, postgres_session: PostgresSession) -> None:
-        self._session = postgres_session
+    def __init__(self, session: DBSession) -> None:
+        self._session = session
 
-    async def register_user(self, user_data: UserData) -> None:
-        password_hash = self.calculate_password_hash(password=user_data.password)
+    async def register_user(
+        self,
+        login: str,
+        password: str,
+    ) -> None:
+        password_hash = self.calculate_password_hash(password=password)
         user = User(
-            login=user_data.login,
+            login=login,
             password_hash=password_hash,
             devices=[],
         )
-        self._session.add(user)
-        await self._session.commit()
+        try:
+            self._session.add(user)
+            await self._session.commit()
+        except IntegrityError:
+            raise LoginAlreadyExists()
 
-    async def user_exists(self, user_data: UserData) -> bool:
-        password_hash = self.calculate_password_hash(password=user_data.password)
-        result = await self._session.scalars(
-            select(User).where(
-                User.login == user_data.login,
-                User.password_hash == password_hash,
-            )
+    async def get_user(
+        self,
+        login: str,
+        password: str,
+    ) -> User:
+        password_hash = self.calculate_password_hash(password=password)
+        query = select(User).where(
+            User.login == login,
+            User.password_hash == password_hash,
         )
-        user = result.first()
-        return user is not None
+        user = await self._session.scalar(query)
+        if user:
+            return user
+
+        raise UserNotExists()
 
     @staticmethod
     def calculate_password_hash(password: str) -> str:
         return hashlib.sha256(password.encode()).hexdigest()
 
-    async def get_records(
+    async def list_devices(
         self,
-        record_query: RecordQuery,
-    ) -> list[RecordModel]:
-        query = select(Record)
+        user_id: int,
+    ) -> list[Device]:
+        query = select(Device).where(Device.user_id == user_id)
+        return (await self._session.scalars(query)).all()
 
-        if record_query.device_id:
-            query = query.where(Record.device_id == record_query.device_id)
+    async def create_device(
+        self,
+        user_id: int,
+        name: str,
+    ) -> Device:
+        device = Device(
+            user_id=user_id,
+            name=name,
+        )
+        self._session.add(device)
+        await self._session.commit()
+        await self._session.refresh(device)
+        return device
 
-        if record_query.start_date:
-            query = query.where(Record.when >= record_query.start_date)
+    async def remove_device(
+        self,
+        user_id: int,
+        device_id: int,
+    ) -> None:
+        device = await self.get_device(
+            user_id=user_id,
+            device_id=device_id,
+        )
+        await self._session.delete(device)
+        await self._session.commit()
 
-        if record_query.end_date:
-            query = query.where(Record.when <= record_query.end_date)
+    async def get_device(
+        self,
+        user_id: int,
+        device_id: int,
+    ) -> Device:
+        query = select(Device).where(
+            Device.id == device_id,
+            Device.user_id == user_id,
+        )
+        device = await self._session.scalar(query)
+        if device:
+            return device
 
-        results = await self._session.execute(query).all()
-        records = results.scalars().all()
-        return [record.cast_to_model() for record in records]
+        raise DeviceNotExists(
+            user_id=user_id,
+            device_id=device_id,
+        )
 
-    async def save_record(self, record: Record) -> None:
+    async def list_records(
+        self,
+        user_id: int,
+        device_id: int | None,
+        start_date: AwareDatetime | None,
+        end_date: AwareDatetime | None,
+    ) -> list[Record]:
+        query = (
+            select(Record)
+            .join(Record.device)
+            .where(
+                Record.device_id == Device.id,
+                Device.user_id == user_id,
+            )
+        )
+
+        if device_id is not None:
+            query = query.where(Record.device_id == device_id)
+
+        if start_date:
+            query = query.where(Record.when >= start_date)
+
+        if end_date:
+            query = query.where(Record.when <= end_date)
+
+        return (await self._session.scalars(query)).all()
+
+    async def create_record(
+        self,
+        device_id: int,
+        when: AwareDatetime,
+        temperature: float,
+        pressure: float,
+    ) -> None:
+        record = Record(
+            device_id=device_id,
+            when=when,
+            temperature=temperature,
+            pressure=pressure,
+        )
         self._session.add(record)
         await self._session.commit()
 
 
-def create_db_connector() -> DBConnector:
-    session = PostgresSession()
+async def create_db_connector() -> DBConnector:
+    session = DBSession()
     try:
-        yield DBConnector(postgres_session=session)
+        yield DBConnector(session=session)
     finally:
-        session.close()
+        await session.close()

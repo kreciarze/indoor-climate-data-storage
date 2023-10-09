@@ -1,21 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime
-
-from pydantic import BaseModel
 from sqlalchemy import Column, DateTime, func
 from sqlalchemy.orm import DeclarativeBase, declared_attr
-
-
-class BaseTimeModel(BaseModel):
-    created_at: datetime | None
-    updated_at: datetime | None
 
 
 class Base(DeclarativeBase):
     __name__: str
 
-    @declared_attr
+    @declared_attr.directive
     def __tablename__(cls: Base) -> str:
         return cls.__name__.lower()
 
