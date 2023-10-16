@@ -1,41 +1,42 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class DatabaseSettings(BaseSettings):
+    user: str = "postgres"
+    password: str = "password"
+    host: str = "postgres"
+    port: str = "5915"
+    db_name: str = "postgres"
+
+    @property
+    def uri(self) -> str:
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db_name}"
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        extra="allow",
+        env_nested_delimiter="__",
+    )
+
     debug: bool = False
     log_level: str = "INFO"
     logging_format: str = "%(name)s %(asctime)-15s %(levelname)s %(message)s"
 
-    @property
-    def _log_formatters(self) -> dict:
-        if self.debug:
-            return {
-                "simple": {"format": self.logging_format},  # non-json for local dev
-            }
-        else:
-            return {
-                "json": {
-                    "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-                    "format": self.logging_format,
-                },
-            }
-
-    @property
-    def _log_filters(self) -> dict:
-        return {"context_filter": {"()": "spoton.express.log.ContextFilter"}}
+    service_secret: str = "secret"
+    postgres: DatabaseSettings = DatabaseSettings()
 
     @property
     def logging(self) -> dict:
         return {
             "version": 1,
             "disable_existing_loggers": False,
-            "formatters": self._log_formatters,
-            "filters": self._log_filters,
+            "formatters": {"simple": {"format": self.logging_format}},
+            "filters": {},
             "handlers": {
                 "stream": {
                     "class": "logging.StreamHandler",
-                    "formatter": "simple" if self.debug else "json",
-                    "filters": ["context_filter"],
+                    "formatter": "simple",
                 },
             },
             "root": {"handlers": ["stream"], "level": self.log_level},

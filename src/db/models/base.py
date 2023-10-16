@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+from datetime import datetime
+
+from pydantic import BaseModel
 from sqlalchemy import Column, DateTime, func
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
+from sqlalchemy.orm import DeclarativeBase, declared_attr
 
 
-@as_declarative()
-class Base:
+class BaseTimeModel(BaseModel):
+    created_at: datetime | None
+    updated_at: datetime | None
+
+
+class Base(DeclarativeBase):
     __name__: str
 
     @declared_attr

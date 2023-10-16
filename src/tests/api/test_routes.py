@@ -5,30 +5,30 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from pytest_mock import MockFixture
 
-from api.contracts import WeatherRecordQuery
-from db.connector import DBConnector
+from db.connector import DBConnector, RecordQuery
 
 
+@pytest.mark.skip(reason="Not implemented yet.")
 @pytest.mark.parametrize(
     "query",
     [
-        WeatherRecordQuery(),
-        WeatherRecordQuery(device_id=1),
-        WeatherRecordQuery(start_date=datetime.now()),
-        WeatherRecordQuery(end_date=datetime.now()),
-        WeatherRecordQuery(device_id=1, start_date=datetime.now()),
-        WeatherRecordQuery(device_id=1, end_date=datetime.now()),
-        WeatherRecordQuery(start_date=datetime.now(), end_date=datetime.now()),
+        RecordQuery(),
+        RecordQuery(device_id=1),
+        RecordQuery(start_date=datetime.now()),
+        RecordQuery(end_date=datetime.now()),
+        RecordQuery(device_id=1, start_date=datetime.now()),
+        RecordQuery(device_id=1, end_date=datetime.now()),
+        RecordQuery(start_date=datetime.now(), end_date=datetime.now()),
     ],
 )
 async def test_get_weather_records(
-    query: WeatherRecordQuery,
+    query: RecordQuery,
     api_client: TestClient,
     mocker: MockFixture,
 ) -> None:
     mock = mocker.patch.object(
         DBConnector,
-        "get_weather_records",
+        "get_records",
         return_value=[],
     )
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export APP=device-management
+export APP=indoor-climate-data-storage
 
 # We need to know if flavor is set
 if [ ! -z ${FLAVOR+x} ] ; then

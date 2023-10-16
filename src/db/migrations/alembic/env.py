@@ -1,26 +1,27 @@
 import asyncio
-from logging.config import dictConfig
 
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
-from utils.base_db_models import Base
 
+from db.models.base import Base
+from db.models.device import Device
+from db.models.record import Record
+from db.models.user import User
 from settings import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-# setting up logging
-dictConfig(settings.LOGGING)
-
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
+# declare all models here
+models = [User, Device, Record]
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -40,7 +41,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = settings.DATABASE.URI
+    url = settings.postgres.uri
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -66,7 +67,7 @@ async def run_async_migrations() -> None:
     """
 
     connectable = create_async_engine(
-        settings.DATABASE.URI,
+        settings.postgres.uri,
         poolclass=pool.NullPool,
     )
 

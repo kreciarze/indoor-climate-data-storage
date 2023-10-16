@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "weather-records-service"
+name = "indoor-climate-data-storage"
 version = "0.0.0"
 description = ""
 authors = ["Piotr Karaś <pepe500p@gmail.com>"]
@@ -14,9 +14,9 @@ httpx = "^0.24.1"
 poetry-dynamic-versioning = "^0.25.0"
 pydantic = "^2.3.0"
 pydantic-settings = "^2.0.2"
-sqlalchemy = "^2.0.5.post1"
+python-jose = "^3.3.0"
+sqlalchemy = "^2.0.22"
 starlette = "^0.27.0"
-starlette-context = "^0.3.6"
 uvicorn = "^0.23.1"
 
 [tool.poetry.group.dev.dependencies]
@@ -70,6 +70,14 @@ omit = [
 code = ["src"]
 deps = ["pyproject.toml"]
 ignore_unused = [
+    # indirectly used
+    "alembic",
+    "asyncpg",
+    "poetry-dynamic-versioning",
+
+    # for testing API
+    "httpx",
+
     # used in Dockerfile
     "dumb-init",
     "uvicorn",

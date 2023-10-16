@@ -23,6 +23,7 @@ RUN apt update && apt install -y \
 
 ENV POETRY_VERSION=1.6.1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/code/src
 
 RUN wget -O- https://install.python-poetry.org | python - --version ${POETRY_VERSION}
 ENV PATH="/root/.local/bin:$PATH"
@@ -49,5 +50,5 @@ WORKDIR /code/src
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
 
 # Runs the production server
-CMD ["ddtrace-run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
 
