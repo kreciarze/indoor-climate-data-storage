@@ -78,6 +78,15 @@ bash:  ### Open bash console (useful when prefixed with dc/, as it opens bash in
 ps:  ### Open python console (useful when prefixed with dc/, as it opens python console inside docker)
 	ipython
 
+migrate: ### Run alembic migrations
+	alembic upgrade head
+
+migrate_downgrade: ### Downgrade alembic migrations
+	alembic downgrade -1
+
+generate_migration: ### Generate alembic migrations
+	alembic revision --autogenerate
+
 ### Help
 help: ## Show this help
 	@sed -Ene 's/^([^ 	]+)( [^ 	]+)*:.*##/\1:\t/p' $(MAKEFILE_LIST) | column -t -s $$'\t'

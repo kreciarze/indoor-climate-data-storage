@@ -1,17 +1,21 @@
 [tool.poetry]
-name = "weather-records-service"
+name = "indoor-climate-data-storage"
 version = "0.0.0"
 description = ""
 authors = ["Piotr Karaś <pepe500p@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+alembic = "^1.10.2"
+asyncpg = "^0.27.0"
 dumb-init = "^1.2.5.post1"
 fastapi = "^0.100.0"
 httpx = "^0.24.1"
 poetry-dynamic-versioning = "^0.25.0"
 pydantic = "^2.3.0"
 pydantic-settings = "^2.0.2"
+python-jose = "^3.3.0"
+sqlalchemy = "^2.0.22"
 starlette = "^0.27.0"
 uvicorn = "^0.23.1"
 
@@ -66,6 +70,14 @@ omit = [
 code = ["src"]
 deps = ["pyproject.toml"]
 ignore_unused = [
+    # indirectly used
+    "alembic",
+    "asyncpg",
+    "poetry-dynamic-versioning",
+
+    # for testing API
+    "httpx",
+
     # used in Dockerfile
     "dumb-init",
     "uvicorn",
@@ -97,8 +109,9 @@ ignore_unused = [
 ]
 
 [tool.flake8]
+# S101 == Use of assert detected. Conflicts with pytest.
 # W503 == line break before binary operator. Conflicts with W504 - line break after binary operator.
-ignore = ["W503"]
+ignore = ["S101", "W503"]
 max-line-length = 120
 
 [tool.isort]

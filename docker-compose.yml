@@ -1,8 +1,8 @@
 version: "3.8"
-x-device-management: &weather-records-service-config
+x-device-management: &indoor-climate-data-storage-config
   environment:
     - FLAVOR=localdev
-  image: weather-records-service-dev
+  image: indoor-climate-data-storage-dev
   build:
     context: ./
     args:
@@ -14,14 +14,25 @@ x-device-management: &weather-records-service-config
 
 
 services:
+  postgres:
+    image: postgres:12.13-bullseye
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=league_planner
+
   fastapi:
-    <<: *weather-records-service-config
+    <<: *indoor-climate-data-storage-config
     command: >-
-      bash -c "uvicorn main_fastapi:app --host 0.0.0.0 --reload --port 80"
+      bash -c "uvicorn main:app --host 0.0.0.0 --reload --port 80"
+    depends_on:
+      - postgres
     ports:
       - ${FASTAPI_HOST_PORT:-8410}:80
 
   debugging:
-    <<: *weather-records-service-config
+    <<: *indoor-climate-data-storage-config
     command: >-
       bash -c "tail -f /dev/null"
