@@ -1,6 +1,7 @@
 from logging.config import dictConfig
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.devices.routes import router as devices_router
 from api.exception_handlers import (
@@ -21,6 +22,14 @@ dictConfig(settings.logging)
 app = FastAPI(
     title="indoor-climate-data-storage",
     debug=settings.debug,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_cors.split("; "),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.add_exception_handler(DeviceNotExists, handler=device_not_exists_handler)
