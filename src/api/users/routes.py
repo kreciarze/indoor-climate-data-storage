@@ -4,7 +4,7 @@ from fastapi import Depends, status
 
 from api.base_router import BaseRouter
 from api.users.contracts import UserBearerToken, UserData
-from auth.tokens import token_encoder
+from auth.tokens import create_token_encoder, TokenEncoder
 from db.connector import create_db_connector, DBConnector
 
 router = BaseRouter(prefix="/users")
@@ -30,6 +30,7 @@ async def register(
 )
 async def login(
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
+    token_encoder: Annotated[TokenEncoder, Depends(create_token_encoder)],
     user_data: UserData,
 ) -> UserBearerToken:
     user = await db_connector.get_user(

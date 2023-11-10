@@ -85,5 +85,9 @@ class TokenDecoder:
             raise TokenError(original_exc=exc)
 
 
-token_encoder = TokenEncoder(service_secret=settings.service_secret)
-token_decoder = TokenDecoder(service_secret=settings.service_secret)
+def create_token_encoder() -> TokenEncoder:
+    return TokenEncoder(service_secret=settings.service_secret)
+
+
+def create_token_decoder() -> TokenDecoder:
+    return TokenDecoder(service_secret=settings.service_secret)

@@ -5,7 +5,7 @@ from fastapi import Depends, status
 from api.base_router import BaseRouter
 from api.devices.contracts import DeviceBearerToken, DeviceData, DeviceDataWithBearer, DeviceName
 from auth.auth import extract_user_id_from_bearer
-from auth.tokens import token_encoder
+from auth.tokens import create_token_encoder, TokenEncoder
 from db.connector import create_db_connector, DBConnector
 
 router = BaseRouter(prefix="/devices")
@@ -32,6 +32,7 @@ async def list_devices(
 async def create_device(
     user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
+    token_encoder: Annotated[TokenEncoder, Depends(create_token_encoder)],
     device_name: DeviceName,
 ) -> DeviceDataWithBearer:
     device = await db_connector.create_device(
@@ -54,10 +55,14 @@ async def remove_device(
     user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
     device_id: int,
-) -> None:
-    await db_connector.remove_device(
+) -> DeviceData:
+    deleted_device = await db_connector.remove_device(
         user_id=user_id,
         device_id=device_id,
+    )
+    return DeviceData(
+        device_id=deleted_device.id,
+        name=deleted_device.name,
     )
 
 
@@ -69,6 +74,7 @@ async def remove_device(
 async def login_device(
     user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
+    token_encoder: Annotated[TokenEncoder, Depends(create_token_encoder)],
     device_id: int,
 ) -> DeviceBearerToken:
     await db_connector.get_device(user_id=user_id, device_id=device_id)

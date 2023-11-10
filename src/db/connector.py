@@ -77,13 +77,14 @@ class DBConnector:
         self,
         user_id: int,
         device_id: int,
-    ) -> None:
+    ) -> Device:
         device = await self.get_device(
             user_id=user_id,
             device_id=device_id,
         )
         await self._session.delete(device)
         await self._session.commit()
+        return device
 
     async def get_device(
         self,
