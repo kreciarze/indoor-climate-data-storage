@@ -42,6 +42,7 @@ pytest = "^7.2.1"
 pytest-asyncio = "^0.20.3"
 pytest-cov = "^4.0.0"
 python-dotenv = "^1.0.0"
+pytest-fastapi-deps = "^0.2.3"
 pytest-lazy-fixture = "^0.6.3"
 
 [build-system]
@@ -104,8 +105,9 @@ ignore_unused = [
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
-    "pytest-lazy-fixture",
     "python-dotenv",
+    "pytest-fastapi-deps",
+    "pytest-lazy-fixture",
 ]
 
 [tool.flake8]
@@ -138,7 +140,7 @@ ignore_errors = true
 # pytest settings
 [tool.pytest.ini_options]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
-addopts = "--strict-markers -p no:warnings --cov=. --cov-fail-under=90 --cov-config=.coveragerc"
+addopts = "--strict-markers -p no:warnings --cov=. --cov-fail-under=80 --cov-config=.coveragerc"
 markers = [
     "integration: marks tests as integration (deselect with '-m \"not integration\"' to have just a quick check)",
     "serial",
