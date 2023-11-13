@@ -85,7 +85,7 @@ async def test_login(api_client: TestClient) -> None:
         login="user",
         password="pass",
     )
-    mock_token_encoder.encode_user_token.assert_awaited_with(user_id=1)
+    mock_token_encoder.encode_user_token.assert_called_with(user_id=1)
 
 
 async def test_login_user_not_exists(api_client: TestClient) -> None:

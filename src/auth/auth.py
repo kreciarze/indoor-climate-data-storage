@@ -12,7 +12,7 @@ async def extract_user_id_from_bearer(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
     token_decoder: Annotated[TokenDecoder, Depends(create_token_decoder)],
 ) -> int:
-    return await token_decoder.extract_client_id(
+    return token_decoder.extract_client_id(
         token=credentials.credentials,
         expected_client_type=ClientType.USER,
     )
@@ -22,7 +22,7 @@ async def extract_device_id_from_bearer(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
     token_decoder: Annotated[TokenDecoder, Depends(create_token_decoder)],
 ) -> int:
-    return await token_decoder.extract_client_id(
+    return token_decoder.extract_client_id(
         token=credentials.credentials,
         expected_client_type=ClientType.DEVICE,
     )

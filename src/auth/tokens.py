@@ -12,25 +12,22 @@ class ClientType(StrEnum):
 
 
 class TokenEncoder:
-    def __init__(
-        self,
-        service_secret: str,
-    ) -> None:
+    def __init__(self, service_secret: str) -> None:
         self.service_secret = service_secret
 
-    async def encode_user_token(self, user_id: int) -> str:
-        return await self.encode_token(
+    def encode_user_token(self, user_id: int) -> str:
+        return self.encode_token(
             client_type=ClientType.USER,
             client_id=user_id,
         )
 
-    async def encode_device_token(self, device_id: int) -> str:
-        return await self.encode_token(
+    def encode_device_token(self, device_id: int) -> str:
+        return self.encode_token(
             client_type=ClientType.DEVICE,
             client_id=device_id,
         )
 
-    async def encode_token(
+    def encode_token(
         self,
         client_type: ClientType,
         client_id: int,
@@ -49,18 +46,15 @@ class TokenEncoder:
 
 
 class TokenDecoder:
-    def __init__(
-        self,
-        service_secret: str,
-    ) -> None:
+    def __init__(self, service_secret: str) -> None:
         self.service_secret = service_secret
 
-    async def extract_client_id(
+    def extract_client_id(
         self,
         token: str,
         expected_client_type: ClientType,
     ) -> int:
-        data = await self.decode_token(token=token)
+        data = self.decode_token(token=token)
         actual_client_type = data.get("client_type")
         if actual_client_type != expected_client_type:
             raise InvalidClientType(
@@ -70,7 +64,7 @@ class TokenDecoder:
 
         return data["client_id"]
 
-    async def decode_token(self, token: str) -> dict:
+    def decode_token(self, token: str) -> dict:
         try:
             return jwt.decode(
                 token=token,
