@@ -39,7 +39,7 @@ async def create_device(
         user_id=user_id,
         name=device_name.name,
     )
-    bearer_token = await token_encoder.encode_device_token(device_id=device.id)
+    bearer_token = token_encoder.encode_device_token(device_id=device.id)
     return DeviceDataWithBearer(
         device_id=device.id,
         name=device.name,
@@ -78,5 +78,5 @@ async def login_device(
     device_id: int,
 ) -> DeviceBearerToken:
     await db_connector.get_device(user_id=user_id, device_id=device_id)
-    bearer_token = await token_encoder.encode_device_token(device_id=device_id)
+    bearer_token = token_encoder.encode_device_token(device_id=device_id)
     return DeviceBearerToken(device_bearer_token=bearer_token)

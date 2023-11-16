@@ -37,5 +37,5 @@ async def login(
         login=user_data.login,
         password=user_data.password,
     )
-    bearer_token = await token_encoder.encode_user_token(user_id=user.id)
+    bearer_token = token_encoder.encode_user_token(user_id=user.id)
     return UserBearerToken(user_bearer_token=bearer_token)

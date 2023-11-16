@@ -72,7 +72,7 @@ async def test_create_device(api_client: TestClient) -> None:
         user_id=EXAMPLE_CLIENT_ID,
         name="device1",
     )
-    mock_token_encoder.encode_device_token.assert_awaited_with(device_id=1)
+    mock_token_encoder.encode_device_token.assert_called_with(device_id=1)
 
 
 async def test_remove_device(api_client: TestClient) -> None:
@@ -129,4 +129,4 @@ async def test_login_device(api_client: TestClient) -> None:
         user_id=EXAMPLE_CLIENT_ID,
         device_id=1,
     )
-    mock_token_encoder.encode_device_token.assert_awaited_with(device_id=1)
+    mock_token_encoder.encode_device_token.assert_called_with(device_id=1)
