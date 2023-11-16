@@ -31,8 +31,3 @@ services:
       - postgres
     ports:
       - ${FASTAPI_HOST_PORT:-8410}:80
-
-  debugging:
-    <<: *indoor-climate-data-storage-config
-    command: >-
-      bash -c "tail -f /dev/null"
