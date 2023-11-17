@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 import pytest
 from sqlalchemy import StaticPool
@@ -6,6 +7,9 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from db.connector import DBConnector
 from db.models.base import Base
+from db.models.device import Device
+from db.models.record import Record
+from db.models.user import User
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 
@@ -18,6 +22,7 @@ test_engine = create_async_engine(
 TestDBSession = async_sessionmaker(
     autoflush=False,
     bind=test_engine,
+    expire_on_commit=False,
 )
 
 
@@ -36,3 +41,56 @@ async def db_connector() -> DBConnector:
         yield DBConnector(session=session)
     finally:
         await session.close()
+
+
+async def create_test_device(
+    session: TestDBSession,
+    user_id: int,
+    name: str,
+) -> Device:
+    device = Device(user_id=user_id, name=name)
+    session.add(device)
+    await session.commit()
+    return device
+
+
+async def create_test_record(
+    session: TestDBSession,
+    device_id: int,
+    when: datetime,
+    temperature: float,
+    pressure: float,
+) -> Record:
+    record = Record(
+        device_id=device_id,
+        when=when,
+        temperature=temperature,
+        pressure=pressure,
+    )
+    session.add(record)
+    await session.commit()
+    return record
+
+
+async def create_test_user(
+    session: TestDBSession,
+    login: str,
+    password: str,
+) -> User:
+    user = User(login=login, password_hash=f"{password}_hash")
+    session.add(user)
+    await session.commit()
+    return user
+
+
+async def create_test_device_and_record(
+    session: TestDBSession,
+    user_id: int,
+    device_name: str,
+    record_when: datetime,
+    temperature: float,
+    pressure: float,
+) -> tuple[Device, Record]:
+    device = await create_test_device(session, user_id, device_name)
+    record = await create_test_record(session, device.id, record_when, temperature, pressure)
+    return device, record
