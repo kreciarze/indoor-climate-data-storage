@@ -27,7 +27,5 @@ services:
     <<: *indoor-climate-data-storage-config
     command: >-
       bash -c "uvicorn main:app --host 0.0.0.0 --reload --port 80"
-    depends_on:
-      - postgres
     ports:
       - ${FASTAPI_HOST_PORT:-8410}:80
