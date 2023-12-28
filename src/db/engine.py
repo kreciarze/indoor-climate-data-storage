@@ -7,7 +7,6 @@ engine = create_async_engine(
     url=settings.postgres.uri,
     echo=settings.debug,
     poolclass=NullPool,
-    connect_args={"options": f"-csearch_path={settings.postgres.db_schema}"},
 )
 DBSession = async_sessionmaker(
     autoflush=False,

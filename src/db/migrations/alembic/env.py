@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from alembic import context
 from sqlalchemy import pool
@@ -10,6 +11,8 @@ from db.models.device import Device
 from db.models.record import Record
 from db.models.user import User
 from settings import settings
+
+logger = logging.getLogger(__name__)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -45,6 +48,7 @@ def run_migrations_offline() -> None:
     context.configure(
         url=url,
         target_metadata=target_metadata,
+        version_table_schema=settings.postgres.db_schema,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
@@ -54,7 +58,11 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        version_table_schema=settings.postgres.db_schema,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
