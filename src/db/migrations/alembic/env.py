@@ -69,6 +69,7 @@ async def run_async_migrations() -> None:
     connectable = create_async_engine(
         settings.postgres.uri,
         poolclass=pool.NullPool,
+        connect_args={"options": f"-csearch_path={settings.postgres.db_schema}"},
     )
 
     async with connectable.connect() as connection:

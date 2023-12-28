@@ -1,11 +1,11 @@
 BASH=bash -l -c
-PROJECT=device-management
+PROJECT=indoor-climate-data-storage
 CONTAINER_NAME=fastapi
 
 .PHONY: Makefile
 
 dc/% dc_%:  ### Run any action inside docker (replace % with any action from below)
-	docker-compose run -w /code/ $(CONTAINER_NAME) make $*
+	docker compose run -w /code/ $(CONTAINER_NAME) make $*
 
 all: check test  ### Run all checks and tests (lints, mypy, tests...)
 
