@@ -7,6 +7,7 @@ class DatabaseSettings(BaseSettings):
     host: str = "postgres"
     port: str = "5915"
     db_name: str = "postgres"
+    db_schema: str = "public"
 
     @property
     def uri(self) -> str:
