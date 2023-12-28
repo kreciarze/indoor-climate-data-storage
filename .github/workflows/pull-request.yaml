@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Repo checkout
         uses: actions/checkout@v3
+      - name: Create empty env file
+        run: touch .env
       - name: Build container
         run: docker compose build
       - name: Run linters and tests
