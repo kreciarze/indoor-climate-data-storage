@@ -12,7 +12,7 @@ router = BaseRouter()
     response_class=HTMLResponse,
 )
 async def home() -> str:
-    return """<!DOCTYPE html>
+    html_content = """
         <html>
 
         <head>
@@ -29,3 +29,4 @@ async def home() -> str:
         </body>
 
         </html>"""
+    return HTMLResponse(content=html_content)
