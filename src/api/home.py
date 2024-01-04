@@ -9,7 +9,5 @@ router = BaseRouter()
     "/",
     status_code=status.HTTP_200_OK,
 )
-async def home() -> dict[str, str]:
-    return {
-        "message": "Welcome to Indoor Climate Data Storage API",
-    }
+async def home() -> str:
+    return "Welcome to Indoor Climate Data Storage API"
