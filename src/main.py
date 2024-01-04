@@ -11,6 +11,7 @@ from api.exception_handlers import (
     token_error_handler,
     user_not_exists_handler,
 )
+from api.home import router as home_router
 from api.records.routes import router as records_router
 from api.users.routes import router as users_router
 from auth.exceptions import InvalidClientType, TokenError
@@ -38,6 +39,7 @@ app.add_exception_handler(LoginAlreadyExists, handler=login_already_exists_handl
 app.add_exception_handler(InvalidClientType, handler=invalid_client_type_handler)
 app.add_exception_handler(TokenError, handler=token_error_handler)
 
+app.include_router(home_router)
 app.include_router(users_router, tags=["users"])
 app.include_router(devices_router, tags=["devices"])
 app.include_router(records_router, tags=["records"])
