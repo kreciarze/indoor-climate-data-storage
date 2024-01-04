@@ -1,4 +1,5 @@
 from fastapi import status
+from fastapi.responses import HTMLResponse
 
 from api.base_router import BaseRouter
 
@@ -8,10 +9,10 @@ router = BaseRouter()
 @router.api_route(
     "/",
     status_code=status.HTTP_200_OK,
+    response_class=HTMLResponse,
 )
 async def home() -> str:
-    return """
-        <!DOCTYPE html>
+    return """<!DOCTYPE html>
         <html>
 
         <head>
@@ -28,4 +29,3 @@ async def home() -> str:
         </body>
 
         </html>"""
-
