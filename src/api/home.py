@@ -11,7 +11,7 @@ router = BaseRouter()
     status_code=status.HTTP_200_OK,
     response_class=HTMLResponse,
 )
-async def home() -> str:
+async def home() -> HTMLResponse:
     html_content = """
         <html>
 
