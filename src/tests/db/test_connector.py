@@ -60,6 +60,8 @@ async def test_remove_device(db_connector: DBConnector) -> None:
     remaining_devices = await db_connector.list_devices(user_id=user.id)
 
     assert removed_device.id == device.id
+    assert removed_device.user is None
+    assert removed_device.user_id is None
     assert removed_device not in remaining_devices
 
 

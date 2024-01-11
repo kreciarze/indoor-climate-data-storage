@@ -15,7 +15,7 @@ else:
 
 class Device(Base):
     id: Mapped[int] = mapped_column(primary_key=True)  # noqa: A003
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
     name: Mapped[str] = mapped_column()
 
     user: Mapped[User] = relationship(back_populates="devices")

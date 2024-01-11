@@ -1,15 +1,15 @@
 """empty message
 
-Revision ID: 9cb914342651
-Revises: Nothing and Everything
-Create Date: 2023-12-28 19:52:47.335494
+Revision ID: 8fb5632cb26c
+Revises: 9cb914342651
+Create Date: 2024-01-11 19:13:17.566374
 
 """
 import sqlalchemy as sa  # noqa: F401
 from alembic import op  # noqa: F401
 
 # revision identifiers, used by Alembic.
-revision = "9cb914342651"
+revision = "8fb5632cb26c"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,7 +31,7 @@ def upgrade() -> None:
     op.create_table(
         "device",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=True),
         sa.Column("name", sa.String(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, comment="Row created at"),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, comment="Row updated at"),

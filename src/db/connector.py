@@ -82,7 +82,7 @@ class DBConnector:
             user_id=user_id,
             device_id=device_id,
         )
-        await self._session.delete(device)
+        device.user = None
         await self._session.commit()
         return device
 
