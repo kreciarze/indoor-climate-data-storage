@@ -84,6 +84,7 @@ class DBConnector:
         )
         device.user = None
         await self._session.commit()
+        await self._session.refresh(device)
         return device
 
     async def get_device(
