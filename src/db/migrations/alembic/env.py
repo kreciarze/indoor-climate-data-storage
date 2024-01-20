@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from db.models.base import Base
 from db.models.device import Device
 from db.models.record import Record
+from db.models.serial_number import SerialNumber
 from db.models.user import User
 from settings import settings
 
@@ -24,7 +25,7 @@ config = context.config
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 # declare all models here
-models = [User, Device, Record]
+models = [User, Device, Record, SerialNumber]
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -48,6 +49,7 @@ def run_migrations_offline() -> None:
     context.configure(
         url=url,
         target_metadata=target_metadata,
+        include_schemas=True,
         version_table_schema=settings.postgres.db_schema,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -60,6 +62,7 @@ def run_migrations_offline() -> None:
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
+        include_schemas=True,
         target_metadata=target_metadata,
         version_table_schema=settings.postgres.db_schema,
     )

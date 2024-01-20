@@ -9,9 +9,13 @@ class DeviceData(DeviceName):
     device_id: int
 
 
-class DeviceBearerToken(BaseModel):
-    device_bearer_token: str
+class DeviceCreateRequest(DeviceName):
+    key: str
 
 
-class DeviceDataWithBearer(DeviceData, DeviceBearerToken):
-    pass
+class DeviceActivateDecryptedMessage(BaseModel):
+    serial_number: str
+
+
+class DeviceActivateRequest(BaseModel):
+    encrypted_message: str

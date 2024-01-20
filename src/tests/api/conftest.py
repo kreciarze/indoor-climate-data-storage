@@ -3,7 +3,7 @@ from unittest.mock import create_autospec
 import pytest
 from fastapi.testclient import TestClient
 
-from auth.auth import extract_device_id_from_bearer, extract_user_id_from_bearer
+from auth.auth import extract_user_id_from_bearer
 from auth.tokens import create_token_decoder, create_token_encoder, TokenDecoder, TokenEncoder
 from db.connector import create_db_connector, DBConnector
 from main import app
@@ -37,7 +37,6 @@ app.dependency_overrides = {
     create_token_encoder: override_token_encoder,
     create_token_decoder: override_token_decoder,
     extract_user_id_from_bearer: override_client_id,
-    extract_device_id_from_bearer: override_client_id,
 }
 
 

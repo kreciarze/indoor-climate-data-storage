@@ -16,4 +16,4 @@ class User(Base):
     login: Mapped[str] = mapped_column(nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String(256), nullable=False)
 
-    devices: Mapped[list[Device]] = relationship(back_populates="user")
+    devices: Mapped[list[Device]] = relationship(back_populates="user", cascade="all, delete-orphan")

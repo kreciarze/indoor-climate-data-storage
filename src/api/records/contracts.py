@@ -7,8 +7,10 @@ class RecordData(BaseModel):
     pressure: float
 
 
-class AssignedRecordData(RecordData):
+class RecordDataWithDeviceId(RecordData):
     device_id: int
-    when: AwareDatetime
-    temperature: float
-    pressure: float
+
+
+class RecordCreateRequest(BaseModel):
+    device_id: int
+    encrypted_message: str
