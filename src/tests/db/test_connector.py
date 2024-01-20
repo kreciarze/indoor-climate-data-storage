@@ -4,6 +4,7 @@ import pytest
 
 from db.connector import DBConnector
 from db.exceptions import DeviceNotExists, LoginAlreadyExists, UserNotExists
+from tests.conftest import EXAMPLE_AES_KEY
 from tests.db.conftest import create_test_device, create_test_device_and_record, create_test_user
 
 
@@ -46,7 +47,7 @@ async def test_create_device(db_connector: DBConnector) -> None:
     user = await create_test_user(db_connector._session, "create_device_user", "password")
     device_name = "TestDevice"
 
-    device = await db_connector.create_device(user_id=user.id, name=device_name)
+    device = await db_connector.create_device(user_id=user.id, name=device_name, key=EXAMPLE_AES_KEY)
 
     assert device.name == device_name
     assert device.user_id == user.id
@@ -60,8 +61,6 @@ async def test_remove_device(db_connector: DBConnector) -> None:
     remaining_devices = await db_connector.list_devices(user_id=user.id)
 
     assert removed_device.id == device.id
-    assert removed_device.user is None
-    assert removed_device.user_id is None
     assert removed_device not in remaining_devices
 
 

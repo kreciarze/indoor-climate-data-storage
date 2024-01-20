@@ -5,9 +5,16 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from db.engine import DBSession
-from db.exceptions import DeviceNotExists, LoginAlreadyExists, UserNotExists
+from db.exceptions import (
+    DeviceAlreadyActivated,
+    DeviceNotExists,
+    InvalidSerialNumber,
+    LoginAlreadyExists,
+    UserNotExists,
+)
 from db.models.device import Device
 from db.models.record import Record
+from db.models.serial_number import SerialNumber
 from db.models.user import User
 
 
@@ -63,10 +70,12 @@ class DBConnector:
         self,
         user_id: int,
         name: str,
+        key: str,
     ) -> Device:
         device = Device(
             user_id=user_id,
             name=name,
+            key=key,
         )
         self._session.add(device)
         await self._session.commit()
@@ -82,9 +91,8 @@ class DBConnector:
             user_id=user_id,
             device_id=device_id,
         )
-        device.user = None
+        await self._session.delete(device)
         await self._session.commit()
-        await self._session.refresh(device)
         return device
 
     async def get_device(
@@ -104,6 +112,14 @@ class DBConnector:
             user_id=user_id,
             device_id=device_id,
         )
+
+    async def get_device_by_id(self, device_id: int) -> Device:
+        query = select(Device).where(Device.id == device_id)
+        device = await self._session.scalar(query)
+        if device:
+            return device
+
+        raise DeviceNotExists(device_id=device_id)
 
     async def list_records(
         self,
@@ -147,6 +163,21 @@ class DBConnector:
         )
         self._session.add(record)
         await self._session.commit()
+
+    async def activate_device(self, device: Device, serial_number: str) -> None:
+        query = select(SerialNumber).where(SerialNumber.value == serial_number)
+        serial_number = self._session.scalar(query)
+        if not serial_number:
+            raise InvalidSerialNumber()
+
+        query = select(Device).where(Device.serial_number_value == serial_number)
+        conflicting_device = self._session.scalar(query)
+        if conflicting_device:
+            raise DeviceAlreadyActivated()
+
+        device.serial_number = serial_number
+        self._session.add(device)
+        self._session.commit()
 
 
 async def create_db_connector() -> DBConnector:

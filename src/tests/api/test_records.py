@@ -4,12 +4,13 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from auth.auth import extract_device_id_from_bearer
+from api.records.contracts import RecordData
 from auth.exceptions import InvalidClientType
 from auth.tokens import ClientType
+from db.models.device import Device
 from db.models.record import Record
-from main import app
 from tests.api.conftest import EXAMPLE_CLIENT_ID, EXAMPLE_DATETIME, mock_db_connector
+from tests.conftest import encrypt_aes256, EXAMPLE_AES_IV, EXAMPLE_AES_KEY
 
 
 async def raise_invalid_client_type() -> None:
@@ -17,27 +18,6 @@ async def raise_invalid_client_type() -> None:
         actual_client_type=ClientType.USER,
         expected_client_type=ClientType.DEVICE,
     )
-
-
-async def test_validating_user_type(
-    api_client: TestClient,
-    fastapi_dep,
-) -> None:
-    with fastapi_dep(app).override({extract_device_id_from_bearer: raise_invalid_client_type}):
-        result = api_client.request(
-            method="POST",
-            url="/records",
-            json={
-                "when": EXAMPLE_DATETIME,
-                "temperature": 21.37,
-                "pressure": 1,
-            },
-        )
-
-    assert result.status_code == status.HTTP_403_FORBIDDEN, result.text
-    assert result.json() == {
-        "message": "Only devices are allowed to perform this action. Expected `device`, but got `user`.",
-    }
 
 
 @pytest.mark.parametrize(
@@ -83,22 +63,40 @@ async def test_list_records(
 
 
 async def test_create_record(api_client: TestClient) -> None:
+    DEVICE_ID = 1
+
     mock_db_connector.create_record.reset_mock()
+    mock_db_connector.get_device_by_id.return_value = Device(
+        id=DEVICE_ID,
+        user_id=EXAMPLE_CLIENT_ID,
+        name="device1",
+        key=EXAMPLE_AES_KEY,
+    )
+
+    record_data = RecordData(
+        when=EXAMPLE_DATETIME,
+        temperature=21.37,
+        pressure=420,
+    )
+    encrypted_message = encrypt_aes256(
+        message=record_data.model_dump_json(),
+        key=EXAMPLE_AES_KEY,
+        iv=EXAMPLE_AES_IV,
+    )
 
     result = api_client.request(
         method="POST",
         url="/records",
         json={
-            "when": EXAMPLE_DATETIME,
-            "temperature": 21.37,
-            "pressure": 420,
+            "device_id": DEVICE_ID,
+            "encrypted_message": encrypted_message,
         },
     )
 
     assert result.status_code == status.HTTP_201_CREATED, result.text
     mock_db_connector.create_record.assert_awaited_once_with(
-        device_id=EXAMPLE_CLIENT_ID,
+        device_id=DEVICE_ID,
         when=datetime.strptime(EXAMPLE_DATETIME, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc),
         temperature=21.37,
-        pressure=420,
+        pressure=420.0,
     )

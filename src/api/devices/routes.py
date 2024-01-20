@@ -3,9 +3,9 @@ from typing import Annotated
 from fastapi import Depends, status
 
 from api.base_router import BaseRouter
-from api.devices.contracts import DeviceBearerToken, DeviceData, DeviceDataWithBearer, DeviceName
+from api.devices.contracts import DeviceActivateDecryptedMessage, DeviceActivateRequest, DeviceCreateRequest, DeviceData
+from auth.aes import decrypt_request
 from auth.auth import extract_user_id_from_bearer
-from auth.tokens import create_token_encoder, TokenEncoder
 from db.connector import create_db_connector, DBConnector
 
 router = BaseRouter(prefix="/devices")
@@ -32,18 +32,16 @@ async def list_devices(
 async def create_device(
     user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
-    token_encoder: Annotated[TokenEncoder, Depends(create_token_encoder)],
-    device_name: DeviceName,
-) -> DeviceDataWithBearer:
+    request: DeviceCreateRequest,
+) -> DeviceData:
     device = await db_connector.create_device(
         user_id=user_id,
-        name=device_name.name,
+        name=request.name,
+        key=request.key,
     )
-    bearer_token = token_encoder.encode_device_token(device_id=device.id)
-    return DeviceDataWithBearer(
+    return DeviceData(
         device_id=device.id,
         name=device.name,
-        device_bearer_token=bearer_token,
     )
 
 
@@ -67,16 +65,21 @@ async def remove_device(
 
 
 @router.post(
-    path="/{device_id}/login",
-    response_description="Bearer token for device authentication.",
+    path="/{device_id}/activate",
     status_code=status.HTTP_201_CREATED,
 )
-async def login_device(
-    user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
+async def activate_device(
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
-    token_encoder: Annotated[TokenEncoder, Depends(create_token_encoder)],
     device_id: int,
-) -> DeviceBearerToken:
-    await db_connector.get_device(user_id=user_id, device_id=device_id)
-    bearer_token = token_encoder.encode_device_token(device_id=device_id)
-    return DeviceBearerToken(device_bearer_token=bearer_token)
+    request: DeviceActivateRequest,
+) -> None:
+    device = await db_connector.get_device_by_id(device_id=device_id)
+    decrypted_message = decrypt_request(
+        encrypted_message=request.encrypted_message,
+        key=device.key,
+        model=DeviceActivateDecryptedMessage,
+    )
+    await db_connector.activate_device(
+        device=device,
+        serial_number=decrypted_message.serial_number,
+    )

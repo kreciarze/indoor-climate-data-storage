@@ -4,8 +4,9 @@ from fastapi import Depends, status
 from pydantic import AwareDatetime
 
 from api.base_router import BaseRouter
-from api.records.contracts import AssignedRecordData, RecordData
-from auth.auth import extract_device_id_from_bearer, extract_user_id_from_bearer
+from api.records.contracts import RecordCreateRequest, RecordData, RecordDataWithDeviceId
+from auth.aes import decrypt_request
+from auth.auth import extract_user_id_from_bearer
 from db.connector import create_db_connector, DBConnector
 
 router = BaseRouter(prefix="/records")
@@ -22,7 +23,7 @@ async def list_records(
     device_id: int | None = None,
     start_date: AwareDatetime | None = None,
     end_date: AwareDatetime | None = None,
-) -> list[AssignedRecordData]:
+) -> list[RecordDataWithDeviceId]:
     records = await db_connector.list_records(
         user_id=user_id,
         device_id=device_id,
@@ -30,7 +31,7 @@ async def list_records(
         end_date=end_date,
     )
     return [
-        AssignedRecordData(
+        RecordDataWithDeviceId(
             device_id=record.device_id,
             when=record.when,
             temperature=record.temperature,
@@ -45,13 +46,18 @@ async def list_records(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_record(
-    device_id: Annotated[int, Depends(extract_device_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
-    record_data: RecordData,
+    request: RecordCreateRequest,
 ) -> None:
+    device = await db_connector.get_device_by_id(device_id=request.device_id)
+    decrypted_message = decrypt_request(
+        encrypted_message=request.encrypted_message,
+        key=device.key,
+        model=RecordData,
+    )
     await db_connector.create_record(
-        device_id=device_id,
-        when=record_data.when,
-        temperature=record_data.temperature,
-        pressure=record_data.pressure,
+        device_id=request.device_id,
+        when=decrypted_message.when,
+        temperature=decrypted_message.temperature,
+        pressure=decrypted_message.pressure,
     )
