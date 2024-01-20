@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 from fastapi import Depends, status
@@ -7,6 +8,9 @@ from api.devices.contracts import DeviceActivateDecryptedMessage, DeviceActivate
 from auth.aes import decrypt_request
 from auth.auth import extract_user_id_from_bearer
 from db.connector import create_db_connector, DBConnector
+
+logger = logging.getLogger(__name__)
+
 
 router = BaseRouter(prefix="/devices")
 
@@ -39,6 +43,7 @@ async def create_device(
         name=request.name,
         key=request.key,
     )
+    logger.info(f"Created device {device.name} with ID: {device.id}.")
     return DeviceData(
         device_id=device.id,
         name=device.name,
@@ -58,6 +63,7 @@ async def remove_device(
         user_id=user_id,
         device_id=device_id,
     )
+    logger.info(f"Removed device {deleted_device.name} with ID: {deleted_device.id}.")
     return DeviceData(
         device_id=deleted_device.id,
         name=deleted_device.name,
@@ -79,7 +85,23 @@ async def activate_device(
         key=device.key,
         model=DeviceActivateDecryptedMessage,
     )
+    logger.info(
+        f"Activated device {device.name} with ID: {device.id} and serial number {decrypted_message.serial_number}.",
+    )
     await db_connector.activate_device(
         device=device,
         serial_number=decrypted_message.serial_number,
     )
+
+
+@router.get(
+    path="/{device_id}/device-key",
+    status_code=status.HTTP_200_OK,
+)
+async def get_device_key(
+    user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
+    db_connector: Annotated[DBConnector, Depends(create_db_connector)],
+    device_id: int,
+) -> str:
+    device = await db_connector.get_device(user_id=user_id, device_id=device_id)
+    return device.key

@@ -4,7 +4,13 @@ from fastapi.responses import JSONResponse
 
 from auth.exceptions import TokenError
 from auth.tokens import ClientType, InvalidClientType
-from db.exceptions import DeviceNotExists, LoginAlreadyExists, UserNotExists
+from db.exceptions import (
+    DeviceAlreadyActivated,
+    DeviceNotExists,
+    InvalidSerialNumber,
+    LoginAlreadyExists,
+    UserNotExists,
+)
 
 
 async def device_not_exists_handler(
@@ -34,6 +40,26 @@ async def login_already_exists_handler(
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"message": "User with provided login already exists."},
+    )
+
+
+async def invalid_serial_number_handler(
+    request: Request,
+    exc: InvalidSerialNumber,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"message": "There is no serial number like this in our system."},
+    )
+
+
+async def device_already_activated_handler(
+    request: Request,
+    exc: DeviceAlreadyActivated,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"message": "This device is already activated."},
     )
 
 
