@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     logging_format: str = "%(name)s %(asctime)-15s %(levelname)s %(message)s"
     allowed_cors: str = ""
+    service_secret: str = "secret"
 
     postgres: DatabaseSettings = DatabaseSettings()
 
