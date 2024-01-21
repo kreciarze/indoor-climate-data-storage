@@ -66,7 +66,7 @@ async def test_create_record(api_client: TestClient) -> None:
     DEVICE_ID = 1
 
     mock_db_connector.create_record.reset_mock()
-    mock_db_connector.get_device_by_id.return_value = Device(
+    mock_db_connector.get_device.return_value = Device(
         id=DEVICE_ID,
         user_id=EXAMPLE_CLIENT_ID,
         name="device1",

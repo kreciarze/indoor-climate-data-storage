@@ -1,4 +1,5 @@
 import asyncio
+import random
 from datetime import datetime
 
 import pytest
@@ -9,13 +10,10 @@ from db.connector import DBConnector
 from db.models.base import Base
 from db.models.device import Device
 from db.models.record import Record
-from db.models.serial_number import SerialNumber
 from db.models.user import User
 from tests.conftest import EXAMPLE_AES_KEY
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
-
-models = [Device, Record, SerialNumber, User]
 
 test_engine = create_async_engine(
     url=TEST_DB_URL,
@@ -49,13 +47,16 @@ async def db_connector() -> DBConnector:
 
 async def create_test_device(
     session: TestDBSession,
-    user_id: int,
-    name: str,
+    user_id: int | None = None,
+    name: str | None = None,
+    activated: bool = True,
 ) -> Device:
     device = Device(
+        serial_number=f"krecikpukawtaborecik:{random.randint(0, int(1e8))}",  # noqa: S311
         user_id=user_id,
         name=name,
         key=EXAMPLE_AES_KEY,
+        activated=activated,
     )
     session.add(device)
     await session.commit()

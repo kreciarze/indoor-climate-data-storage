@@ -1,11 +1,10 @@
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from api.devices.contracts import DeviceActivateDecryptedMessage
+from api.devices.contracts import SerialNumber
 from auth.auth import extract_user_id_from_bearer
 from auth.exceptions import InvalidClientType
 from auth.tokens import ClientType
-from db.exceptions import DeviceNotExists
 from db.models.device import Device
 from main import app
 from tests.api.conftest import EXAMPLE_CLIENT_ID, mock_db_connector
@@ -48,71 +47,42 @@ async def test_list_devices(api_client: TestClient) -> None:
     mock_db_connector.list_devices.assert_awaited_once()
 
 
-async def test_create_device(api_client: TestClient) -> None:
-    mock_db_connector.create_device.reset_mock()
-    mock_db_connector.create_device.return_value = Device(
-        id=1,
+async def test_assign_device(api_client: TestClient) -> None:
+    DEVICE_ID = 1
+    device = Device(
+        id=DEVICE_ID,
         user_id=EXAMPLE_CLIENT_ID,
         name="device1",
+        key=EXAMPLE_AES_KEY,
+        activated=False,
     )
+    mock_db_connector.get_device.reset_mock()
+    mock_db_connector.assign_device.reset_mock()
+    mock_db_connector.get_device.return_value = device
+    mock_db_connector.assign_device.return_value = device
 
     result = api_client.request(
         method="POST",
-        url="/devices",
+        url=f"/devices/{DEVICE_ID}/assign",
         json={
             "name": "device1",
             "key": EXAMPLE_AES_KEY,
         },
     )
 
-    assert result.status_code == status.HTTP_201_CREATED, result.text
-    assert result.json() == {
-        "device_id": 1,
-        "name": "device1",
-    }
-    mock_db_connector.create_device.assert_awaited_once_with(
-        user_id=EXAMPLE_CLIENT_ID,
-        name="device1",
-        key=EXAMPLE_AES_KEY,
-    )
-
-
-async def test_remove_device(api_client: TestClient) -> None:
-    mock_db_connector.remove_device.reset_mock()
-    mock_db_connector.remove_device.return_value = Device(
-        id=1,
-        user_id=EXAMPLE_CLIENT_ID,
-        name="device1",
-    )
-
-    result = api_client.request(
-        method="DELETE",
-        url="/devices/1",
-    )
-
     assert result.status_code == status.HTTP_200_OK, result.text
     assert result.json() == {
-        "device_id": 1,
+        "id": DEVICE_ID,
+        "user_id": EXAMPLE_CLIENT_ID,
         "name": "device1",
+        "activated": False,
     }
-    mock_db_connector.remove_device.assert_awaited_once()
-
-
-async def test_remove_device_not_exists(api_client: TestClient) -> None:
-    mock_db_connector.remove_device.reset_mock()
-    mock_db_connector.remove_device.side_effect = DeviceNotExists(
+    mock_db_connector.get_device.assert_awaited_once_with(device_id=DEVICE_ID)
+    mock_db_connector.assign_device.assert_awaited_once_with(
+        device=device,
         user_id=EXAMPLE_CLIENT_ID,
-        device_id=1,
+        key=EXAMPLE_AES_KEY,
     )
-
-    result = api_client.request(
-        method="DELETE",
-        url="/devices/1",
-    )
-
-    assert result.status_code == status.HTTP_404_NOT_FOUND, result.text
-    assert result.json() == {"message": "User 2137 does not have device 1."}
-    mock_db_connector.remove_device.assert_awaited_once()
 
 
 async def test_activate_device(api_client: TestClient) -> None:
@@ -124,11 +94,9 @@ async def test_activate_device(api_client: TestClient) -> None:
     )
     mock_db_connector.get_device.reset_mock()
     mock_db_connector.activate_device.reset_mock()
-    mock_db_connector.get_device_by_id.return_value = device
+    mock_db_connector.get_device.return_value = device
 
-    record_data = DeviceActivateDecryptedMessage(
-        serial_number="krecikpukawtaborecik",
-    )
+    record_data = SerialNumber(serial_number="krecikpukawtaborecik")
     encrypted_message = encrypt_aes256(
         message=record_data.model_dump_json(),
         key=EXAMPLE_AES_KEY,
@@ -141,8 +109,8 @@ async def test_activate_device(api_client: TestClient) -> None:
         json={"encrypted_message": encrypted_message},
     )
 
-    assert result.status_code == status.HTTP_201_CREATED, result.text
-    mock_db_connector.get_device_by_id.assert_awaited_once_with(device_id=device.id)
+    assert result.status_code == status.HTTP_200_OK, result.text
+    mock_db_connector.get_device.assert_awaited_once_with(device_id=device.id)
     mock_db_connector.activate_device.assert_awaited_once_with(
         device=device,
         serial_number="krecikpukawtaborecik",

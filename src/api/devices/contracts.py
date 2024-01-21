@@ -1,20 +1,19 @@
 from pydantic import BaseModel
 
 
-class DeviceName(BaseModel):
-    name: str
+class DeviceData(BaseModel):
+    id: int  # noqa: A003
+    user_id: int | None = None
+    name: str | None = None
+    activated: bool
 
 
-class DeviceData(DeviceName):
-    device_id: int
-
-
-class DeviceCreateRequest(DeviceName):
-    key: str
-
-
-class DeviceActivateDecryptedMessage(BaseModel):
+class SerialNumber(BaseModel):
     serial_number: str
+
+
+class DeviceKey(BaseModel):
+    key: str
 
 
 class DeviceActivateRequest(BaseModel):

@@ -53,7 +53,7 @@ async def create_record(
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
     request: RecordCreateRequest,
 ) -> None:
-    device = await db_connector.get_device_by_id(device_id=request.device_id)
+    device = await db_connector.get_device(device_id=request.device_id)
     decrypted_message = decrypt_request(
         encrypted_message=request.encrypted_message,
         key=device.key,
