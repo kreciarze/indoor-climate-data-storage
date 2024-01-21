@@ -4,7 +4,6 @@ import pytest
 
 from db.connector import DBConnector
 from db.exceptions import DeviceNotExists, LoginAlreadyExists, UserNotExists
-from tests.conftest import EXAMPLE_AES_KEY
 from tests.db.conftest import create_test_device, create_test_device_and_record, create_test_user
 
 
@@ -44,31 +43,19 @@ async def test_list_devices(db_connector: DBConnector) -> None:
 
 
 async def test_create_device(db_connector: DBConnector) -> None:
-    user = await create_test_user(db_connector._session, "create_device_user", "password")
-    device_name = "TestDevice"
+    device = await db_connector.create_device(serial_number="krecikpukawtaborecik")
 
-    device = await db_connector.create_device(user_id=user.id, name=device_name, key=EXAMPLE_AES_KEY)
-
-    assert device.name == device_name
-    assert device.user_id == user.id
-
-
-async def test_remove_device(db_connector: DBConnector) -> None:
-    user = await create_test_user(db_connector._session, "remove_device_user", "password")
-    device = await create_test_device(db_connector._session, user.id, "DeviceToRemove")
-
-    removed_device = await db_connector.remove_device(user_id=user.id, device_id=device.id)
-    remaining_devices = await db_connector.list_devices(user_id=user.id)
-
-    assert removed_device.id == device.id
-    assert removed_device not in remaining_devices
+    assert isinstance(device.id, int)
+    assert device.user_id is None
+    assert device.name is None
+    assert device.serial_number == "krecikpukawtaborecik"
 
 
 async def test_get_device(db_connector: DBConnector) -> None:
     user = await create_test_user(db_connector._session, "get_device_user", "password")
     device = await create_test_device(db_connector._session, user.id, "GetDevice")
 
-    retrieved_device = await db_connector.get_device(user_id=user.id, device_id=device.id)
+    retrieved_device = await db_connector.get_user_device(user_id=user.id, device_id=device.id)
 
     assert retrieved_device.id == device.id
 
@@ -77,7 +64,7 @@ async def test_get_nonexistent_device(db_connector: DBConnector) -> None:
     user = await create_test_user(db_connector._session, "nonexistent_device_user", "password")
 
     with pytest.raises(DeviceNotExists):
-        await db_connector.get_device(user_id=user.id, device_id=999)
+        await db_connector.get_user_device(user_id=user.id, device_id=999)
 
 
 async def test_list_records(db_connector: DBConnector) -> None:

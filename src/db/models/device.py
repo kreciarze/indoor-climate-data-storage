@@ -7,21 +7,21 @@ from db.models.base import Base
 
 if TYPE_CHECKING:
     from db.models.record import Record
-    from db.models.serial_number import SerialNumber
     from db.models.user import User
 else:
     Record = "Record"
     User = "User"
-    SerialNumber = "SerialNumber"
 
 
 class Device(Base):
     id: Mapped[int] = mapped_column(primary_key=True)  # noqa: A003
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    serial_number_value: Mapped[str | None] = mapped_column(ForeignKey("serialnumber.value"), nullable=True)
-    name: Mapped[str] = mapped_column()
-    key: Mapped[str] = mapped_column()
+    serial_number: Mapped[str] = mapped_column(unique=True)
+
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("user.id"))
+    name: Mapped[str | None] = mapped_column()
+    key: Mapped[str | None] = mapped_column()
+
+    activated: Mapped[bool] = mapped_column(default=False)
 
     user: Mapped[User] = relationship(back_populates="devices")
     records: Mapped[list[Record]] = relationship(back_populates="device", cascade="all, delete-orphan")
-    serial_number: Mapped[SerialNumber] = relationship(foreign_keys=[serial_number_value])
