@@ -71,12 +71,12 @@ async def assign_device(
         key=request.key,
     )
 
-    encrypted_message = await db_connector.dequeue_activation_request(device=device)
-    if encrypted_message:
+    encoded_message = await db_connector.dequeue_activation_request(device=device)
+    if encoded_message:
         device = await activate(
             db_connector=db_connector,
             device=device,
-            encrypted_message=encrypted_message,
+            encoded_message=encoded_message,
         )
 
     return DeviceData(
@@ -122,7 +122,7 @@ async def activate_device(
         device = await activate(
             db_connector=db_connector,
             device=device,
-            encrypted_message=request.encrypted_message,
+            encoded_message=request.encrypted_message,
         )
     else:
         await db_connector.enqueue_activation_request(
@@ -141,11 +141,11 @@ async def activate_device(
 async def activate(
     db_connector: DBConnector,
     device: Device,
-    encrypted_message: str,
+    encoded_message: str,
 ) -> Device:
     decrypted_message = decrypt_request(
-        encrypted_message=encrypted_message,
         key=device.key,
+        request=encoded_message,
         model=SerialNumber,
     )
     return await db_connector.activate_device(
