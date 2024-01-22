@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from db.models.activation_request import ActivationRequest
 from db.models.base import Base
 from db.models.device import Device
 from db.models.record import Record
@@ -24,7 +25,7 @@ config = context.config
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 # declare all models here
-models = [User, Device, Record]
+models = [User, Device, Record, ActivationRequest]
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

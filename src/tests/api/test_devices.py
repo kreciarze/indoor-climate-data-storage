@@ -57,12 +57,14 @@ async def test_assign_device(api_client: TestClient) -> None:
         activated=False,
     )
     mock_db_connector.get_device.reset_mock()
-    mock_db_connector.assign_device.reset_mock()
     mock_db_connector.get_device.return_value = device
+    mock_db_connector.assign_device.reset_mock()
     mock_db_connector.assign_device.return_value = device
+    mock_db_connector.dequeue_activation_request.reset_mock()
+    mock_db_connector.dequeue_activation_request.return_value = None
 
     result = api_client.request(
-        method="POST",
+        method="PATCH",
         url=f"/devices/{DEVICE_ID}/assign",
         json={
             "name": "device1",
@@ -81,8 +83,10 @@ async def test_assign_device(api_client: TestClient) -> None:
     mock_db_connector.assign_device.assert_awaited_once_with(
         device=device,
         user_id=EXAMPLE_CLIENT_ID,
+        name="device1",
         key=EXAMPLE_AES_KEY,
     )
+    mock_db_connector.dequeue_activation_request.assert_awaited_once_with(device=device)
 
 
 async def test_activate_device(api_client: TestClient) -> None:
@@ -91,10 +95,12 @@ async def test_activate_device(api_client: TestClient) -> None:
         user_id=EXAMPLE_CLIENT_ID,
         name="device1",
         key=EXAMPLE_AES_KEY,
+        activated=False,
     )
     mock_db_connector.get_device.reset_mock()
-    mock_db_connector.activate_device.reset_mock()
     mock_db_connector.get_device.return_value = device
+    mock_db_connector.activate_device.reset_mock()
+    mock_db_connector.activate_device.return_value = device
 
     record_data = SerialNumber(serial_number="krecikpukawtaborecik")
     encrypted_message = encrypt_aes256(
@@ -104,7 +110,7 @@ async def test_activate_device(api_client: TestClient) -> None:
     )
 
     result = api_client.request(
-        method="POST",
+        method="PATCH",
         url="/devices/1/activate",
         json={"encrypted_message": encrypted_message},
     )

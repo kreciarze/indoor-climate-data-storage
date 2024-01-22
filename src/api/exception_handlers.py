@@ -2,7 +2,7 @@ from fastapi import status
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
-from auth.exceptions import TokenError
+from auth.exceptions import InvalidEncryption, TokenError
 from auth.tokens import ClientType, InvalidClientType
 from db.exceptions import (
     DeviceAlreadyActivated,
@@ -89,5 +89,19 @@ async def token_error_handler(
         content={
             "original_exception": exc.original_exc.__class__.__name__,
             "message": str(exc.original_exc),
+        },
+    )
+
+
+async def invalid_encryption_handler(
+    request: Request,
+    exc: InvalidEncryption,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={
+            "original_exception": exc.original_exc.__class__.__name__,
+            "original_exception_message": str(exc.original_exc),
+            "message": str(exc),
         },
     )

@@ -1,4 +1,3 @@
-import logging
 from typing import Annotated
 
 from fastapi import Depends, status
@@ -9,9 +8,6 @@ from api.records.contracts import RecordCreateRequest, RecordData, RecordDataWit
 from auth.aes import decrypt_request
 from auth.auth import extract_user_id_from_bearer
 from db.connector import create_db_connector, DBConnector
-
-logger = logging.getLogger(__name__)
-
 
 router = BaseRouter(prefix="/records")
 
@@ -65,4 +61,3 @@ async def create_record(
         temperature=decrypted_message.temperature,
         pressure=decrypted_message.pressure,
     )
-    logger.info(f"Saved record from device {device.id} from {decrypted_message.when}.")

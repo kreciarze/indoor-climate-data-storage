@@ -16,5 +16,9 @@ class DeviceKey(BaseModel):
     key: str
 
 
+class DeviceAssignRequest(DeviceKey):
+    name: str
+
+
 class DeviceActivateRequest(BaseModel):
     encrypted_message: str

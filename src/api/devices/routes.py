@@ -1,16 +1,13 @@
-import logging
 from typing import Annotated
 
 from fastapi import Depends, status
 
 from api.base_router import BaseRouter
-from api.devices.contracts import DeviceActivateRequest, DeviceData, DeviceKey, SerialNumber
+from api.devices.contracts import DeviceActivateRequest, DeviceAssignRequest, DeviceData, DeviceKey, SerialNumber
 from auth.aes import decrypt_request
 from auth.auth import extract_user_id_from_bearer
 from db.connector import create_db_connector, DBConnector
-
-logger = logging.getLogger(__name__)
-
+from db.models.device import Device
 
 router = BaseRouter(prefix="/devices")
 
@@ -47,7 +44,6 @@ async def create_device(
     request: SerialNumber,
 ) -> DeviceData:
     device = await db_connector.create_device(serial_number=request.serial_number)
-    logger.info(f"Created new device with ID: {device.id}.")
     return DeviceData(
         id=device.id,
         user_id=device.user_id,
@@ -56,7 +52,7 @@ async def create_device(
     )
 
 
-@router.post(
+@router.patch(
     path="/{device_id}/assign",
     response_description="Assign device to user.",
     status_code=status.HTTP_200_OK,
@@ -65,11 +61,24 @@ async def assign_device(
     user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
     device_id: int,
-    request: DeviceKey,
+    request: DeviceAssignRequest,
 ) -> DeviceData:
     device = await db_connector.get_device(device_id=device_id)
-    device = await db_connector.assign_device(device=device, user_id=user_id, key=request.key)
-    logger.info(f"Assigned device {device.name} with ID: {device.id} to user with ID {user_id}.")
+    device = await db_connector.assign_device(
+        device=device,
+        user_id=user_id,
+        name=request.name,
+        key=request.key,
+    )
+
+    encrypted_message = await db_connector.dequeue_activation_request(device=device)
+    if encrypted_message:
+        device = await activate(
+            db_connector=db_connector,
+            device=device,
+            encrypted_message=encrypted_message,
+        )
+
     return DeviceData(
         id=device.id,
         user_id=device.user_id,
@@ -78,7 +87,7 @@ async def assign_device(
     )
 
 
-@router.post(
+@router.patch(
     path="/{device_id}/unassign",
     status_code=status.HTTP_200_OK,
 )
@@ -89,7 +98,6 @@ async def unassign_device(
 ) -> DeviceData:
     device = await db_connector.get_user_device(user_id=user_id, device_id=device_id)
     device = await db_connector.unassign_device(device=device)
-    logger.info(f"Unassigned device {device.name} with ID: {device.id}.")
     return DeviceData(
         id=device.id,
         user_id=device.user_id,
@@ -98,22 +106,49 @@ async def unassign_device(
     )
 
 
-@router.post(path="/{device_id}/activate", response_description="Activate device.", status_code=status.HTTP_200_OK)
+@router.patch(
+    path="/{device_id}/activate",
+    response_description="Activate device.",
+    status_code=status.HTTP_200_OK,
+)
 async def activate_device(
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
     device_id: int,
     request: DeviceActivateRequest,
-) -> None:
+) -> DeviceData:
     device = await db_connector.get_device(device_id=device_id)
+
+    if device.key:
+        device = await activate(
+            db_connector=db_connector,
+            device=device,
+            encrypted_message=request.encrypted_message,
+        )
+    else:
+        await db_connector.enqueue_activation_request(
+            device=device,
+            encrypted_message=request.encrypted_message,
+        )
+
+    return DeviceData(
+        id=device.id,
+        user_id=device.user_id,
+        name=device.name,
+        activated=device.activated,
+    )
+
+
+async def activate(
+    db_connector: DBConnector,
+    device: Device,
+    encrypted_message: str,
+) -> Device:
     decrypted_message = decrypt_request(
-        encrypted_message=request.encrypted_message,
+        encrypted_message=encrypted_message,
         key=device.key,
         model=SerialNumber,
     )
-    logger.info(
-        f"Activated device {device.name} with ID: {device.id} and serial number {decrypted_message.serial_number}.",
-    )
-    await db_connector.activate_device(
+    return await db_connector.activate_device(
         device=device,
         serial_number=decrypted_message.serial_number,
     )

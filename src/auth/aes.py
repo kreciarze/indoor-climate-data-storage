@@ -1,9 +1,12 @@
 import base64
+import binascii
 from typing import TypeVar
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
 from pydantic import BaseModel
+
+from auth.exceptions import InvalidEncryption
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -13,12 +16,15 @@ def decrypt_request(
     key: str,
     model: type[T],
 ) -> T:
-    json_data = decrypt_aes256(
-        encoded_iv=encrypted_message[:24],
-        encrypted_message=encrypted_message[24:],
-        key=key,
-    )
-    return model.model_validate_json(json_data=json_data)
+    try:
+        json_data = decrypt_aes256(
+            encoded_iv=encrypted_message[:24],
+            encrypted_message=encrypted_message[24:],
+            key=key,
+        )
+        return model.model_validate_json(json_data=json_data)
+    except binascii.Error as e:
+        raise InvalidEncryption("Invalid base64 encoded data.", original_exc=e)
 
 
 def decrypt_aes256(encoded_iv: str, encrypted_message: str, key: str) -> str:
