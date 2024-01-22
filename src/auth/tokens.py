@@ -37,7 +37,6 @@ class TokenEncoder:
                 claims={
                     "client_type": client_type,
                     "client_id": client_id,
-                    # TODO: add expiration
                 },
                 key=self.service_secret,
             )
@@ -70,7 +69,7 @@ class TokenDecoder:
                 token=token,
                 key=self.service_secret,
                 options={
-                    "verify_signature": False,  # TODO: remove
+                    "verify_signature": False,
                     "verify_aud": False,
                     "verify_iss": False,
                 },

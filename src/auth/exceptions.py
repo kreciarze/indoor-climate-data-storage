@@ -16,3 +16,13 @@ class TokenError(Exception):
     ) -> None:
         super().__init__()
         self.original_exc = original_exc
+
+
+class InvalidEncryption(Exception):
+    def __init__(
+        self,
+        msg: str,
+        original_exc: Exception,
+    ) -> None:
+        super().__init__(msg)
+        self.original_exc = original_exc
