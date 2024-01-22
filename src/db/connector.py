@@ -12,6 +12,7 @@ from db.exceptions import (
     DeviceNotExists,
     InvalidSerialNumber,
     LoginAlreadyExists,
+    SerialNumberAlreadyExists,
     UserNotExists,
 )
 from db.models.activation_request import ActivationRequest
@@ -72,8 +73,13 @@ class DBConnector:
 
     async def create_device(self, serial_number: str) -> Device:
         device = Device(serial_number=serial_number)
-        self._session.add(device)
-        await self._session.commit()
+
+        try:
+            self._session.add(device)
+            await self._session.commit()
+        except IntegrityError:
+            raise SerialNumberAlreadyExists()
+
         await self._session.refresh(device)
         logger.info(f"Created new device with ID: {device.id}.")
         return device

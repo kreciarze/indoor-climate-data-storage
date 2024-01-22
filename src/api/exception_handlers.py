@@ -9,6 +9,7 @@ from db.exceptions import (
     DeviceNotExists,
     InvalidSerialNumber,
     LoginAlreadyExists,
+    SerialNumberAlreadyExists,
     UserNotExists,
 )
 
@@ -60,6 +61,16 @@ async def device_already_activated_handler(
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"message": "This device is already activated."},
+    )
+
+
+async def serial_number_already_exists_handler(
+    request: Request,
+    exc: SerialNumberAlreadyExists,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"message": "This serial number already exists."},
     )
 
 

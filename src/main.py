@@ -11,6 +11,7 @@ from api.exception_handlers import (
     invalid_encryption_handler,
     invalid_serial_number_handler,
     login_already_exists_handler,
+    serial_number_already_exists_handler,
     token_error_handler,
     user_not_exists_handler,
 )
@@ -23,6 +24,7 @@ from db.exceptions import (
     DeviceNotExists,
     InvalidSerialNumber,
     LoginAlreadyExists,
+    SerialNumberAlreadyExists,
     UserNotExists,
 )
 from settings import settings
@@ -51,6 +53,7 @@ app.add_exception_handler(TokenError, handler=token_error_handler)
 app.add_exception_handler(InvalidEncryption, handler=invalid_encryption_handler)
 app.add_exception_handler(InvalidSerialNumber, handler=invalid_serial_number_handler)
 app.add_exception_handler(DeviceAlreadyActivated, handler=device_already_activated_handler)
+app.add_exception_handler(SerialNumberAlreadyExists, handler=serial_number_already_exists_handler)
 
 app.include_router(home_router)
 app.include_router(users_router, tags=["users"])

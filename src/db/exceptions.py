@@ -19,3 +19,7 @@ class InvalidSerialNumber(Exception):
 
 class DeviceAlreadyActivated(Exception):
     pass
+
+
+class SerialNumberAlreadyExists(Exception):
+    pass
