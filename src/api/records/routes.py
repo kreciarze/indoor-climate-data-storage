@@ -51,7 +51,7 @@ async def create_record(
 ) -> None:
     device = await db_connector.get_device(device_id=request.device_id)
     decrypted_message = decrypt_request(
-        encrypted_message=request.encrypted_message,
+        request=request.encrypted_message,
         key=device.key,
         model=RecordData,
     )
