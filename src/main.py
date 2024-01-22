@@ -31,6 +31,7 @@ dictConfig(settings.logging)
 
 app = FastAPI(
     title="indoor-climate-data-storage",
+    version=settings.version,
     debug=settings.debug,
 )
 

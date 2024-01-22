@@ -20,6 +20,7 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
     )
 
+    version: str = ""
     debug: bool = False
     log_level: str = "INFO"
     logging_format: str = "%(name)s %(asctime)-15s %(levelname)s %(message)s"

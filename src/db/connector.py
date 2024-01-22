@@ -67,10 +67,7 @@ class DBConnector:
         self,
         user_id: int,
     ) -> list[Device]:
-        query = select(Device).where(
-            Device.user_id == user_id,
-            Device.activated,
-        )
+        query = select(Device).where(Device.user_id == user_id)
         return (await self._session.scalars(query)).all()
 
     async def create_device(self, serial_number: str) -> Device:
