@@ -162,7 +162,7 @@ class DBConnector:
     async def get_user_device(
         self,
         user_id: int,
-        device_id: int,
+        device_id: str,
     ) -> Device:
         query = select(Device).where(
             Device.id == device_id,
@@ -177,7 +177,7 @@ class DBConnector:
             device_id=device_id,
         )
 
-    async def get_device(self, device_id: int) -> Device:
+    async def get_device(self, device_id: str) -> Device:
         query = select(Device).where(Device.id == device_id)
         device = await self._session.scalar(query)
         if device:
@@ -188,7 +188,7 @@ class DBConnector:
     async def list_records(
         self,
         user_id: int,
-        device_id: int | None,
+        device_id: str | None,
         start_date: AwareDatetime | None,
         end_date: AwareDatetime | None,
     ) -> list[Record]:
@@ -214,7 +214,7 @@ class DBConnector:
 
     async def create_record(
         self,
-        device_id: int,
+        device_id: str,
         when: AwareDatetime,
         temperature: float,
         pressure: float,

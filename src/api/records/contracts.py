@@ -8,9 +8,9 @@ class RecordData(BaseModel):
 
 
 class RecordDataWithDeviceId(RecordData):
-    device_id: int
+    device_id: str
 
 
 class RecordCreateRequest(BaseModel):
-    device_id: int
+    device_id: str
     encrypted_message: str

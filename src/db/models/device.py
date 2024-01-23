@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base
@@ -14,7 +14,7 @@ else:
 
 
 class Device(Base):
-    id: Mapped[int] = mapped_column(primary_key=True)  # noqa: A003
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True)  # noqa: A003
     serial_number: Mapped[str] = mapped_column(unique=True)
 
     user_id: Mapped[int | None] = mapped_column(ForeignKey("user.id"))

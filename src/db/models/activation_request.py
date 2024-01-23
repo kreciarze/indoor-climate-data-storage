@@ -12,7 +12,7 @@ else:
 
 
 class ActivationRequest(Base):
-    device_id: Mapped[int] = mapped_column(ForeignKey("device.id"), primary_key=True, nullable=False)
+    device_id: Mapped[str] = mapped_column(ForeignKey("device.id"), primary_key=True, nullable=False)
     encrypted_message: Mapped[str] = mapped_column(nullable=False)
 
     device: Mapped[Device] = relationship()

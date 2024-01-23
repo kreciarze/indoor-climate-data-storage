@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class DeviceData(BaseModel):
-    id: int  # noqa: A003
+    id: str  # noqa: A003
     user_id: int | None = None
     name: str | None = None
     activated: bool
