@@ -1,6 +1,7 @@
 import hashlib
 import logging
 from datetime import timedelta
+from uuid import uuid4
 
 from pydantic import AwareDatetime
 from sqlalchemy import func, select
@@ -72,7 +73,10 @@ class DBConnector:
         return (await self._session.scalars(query)).all()
 
     async def create_device(self, serial_number: str) -> Device:
-        device = Device(serial_number=serial_number)
+        device = Device(
+            id=uuid4(),
+            serial_number=serial_number,
+        )
 
         try:
             self._session.add(device)
