@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends, status
+from fastapi.responses import JSONResponse
 from pydantic import AwareDatetime
 
 from api.base_router import BaseRouter
@@ -48,8 +49,14 @@ async def list_records(
 async def create_record(
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
     request: RecordCreateRequest,
-) -> None:
+) -> JSONResponse:
     device = await db_connector.get_device(device_id=request.device_id)
+    if device.activated is False or device.key is None:
+        return JSONResponse(
+            content={"message": "Device is not activated yet."},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
     decrypted_message = decrypt_request(
         request=request.encrypted_message,
         key=device.key,
@@ -60,4 +67,8 @@ async def create_record(
         when=decrypted_message.when,
         temperature=decrypted_message.temperature,
         pressure=decrypted_message.pressure,
+    )
+    return JSONResponse(
+        content={"message": "Record created."},
+        status_code=status.HTTP_201_CREATED,
     )
