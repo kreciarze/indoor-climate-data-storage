@@ -20,7 +20,7 @@ router = BaseRouter(prefix="/records")
 async def list_records(
     user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
-    device_id: int | None = None,
+    device_id: str | None = None,
     start_date: AwareDatetime | None = None,
     end_date: AwareDatetime | None = None,
 ) -> list[RecordDataWithDeviceId]:
@@ -32,7 +32,7 @@ async def list_records(
     )
     return [
         RecordDataWithDeviceId(
-            device_id=record.device_id,
+            device_id=str(record.device_id),
             when=record.when,
             temperature=record.temperature,
             pressure=record.pressure,

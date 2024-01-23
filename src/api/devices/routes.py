@@ -24,7 +24,7 @@ async def list_devices(
     devices = await db_connector.list_devices(user_id=user_id)
     return [
         DeviceData(
-            id=device.id,
+            id=str(device.id),
             user_id=device.user_id,
             name=device.name,
             activated=device.activated,
@@ -45,7 +45,7 @@ async def create_device(
 ) -> DeviceData:
     device = await db_connector.create_device(serial_number=request.serial_number)
     return DeviceData(
-        id=device.id,
+        id=str(device.id),
         user_id=device.user_id,
         name=device.name,
         activated=device.activated,
@@ -60,7 +60,7 @@ async def create_device(
 async def assign_device(
     user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
-    device_id: int,
+    device_id: str,
     request: DeviceAssignRequest,
 ) -> DeviceData:
     device = await db_connector.get_device(device_id=device_id)
@@ -80,7 +80,7 @@ async def assign_device(
         )
 
     return DeviceData(
-        id=device.id,
+        id=str(device.id),
         user_id=device.user_id,
         name=device.name,
         activated=device.activated,
@@ -94,12 +94,12 @@ async def assign_device(
 async def unassign_device(
     user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
-    device_id: int,
+    device_id: str,
 ) -> DeviceData:
     device = await db_connector.get_user_device(user_id=user_id, device_id=device_id)
     device = await db_connector.unassign_device(device=device)
     return DeviceData(
-        id=device.id,
+        id=str(device.id),
         user_id=device.user_id,
         name=device.name,
         activated=device.activated,
@@ -113,7 +113,7 @@ async def unassign_device(
 )
 async def activate_device(
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
-    device_id: int,
+    device_id: str,
     request: DeviceActivateRequest,
 ) -> DeviceData:
     device = await db_connector.get_device(device_id=device_id)
@@ -131,7 +131,7 @@ async def activate_device(
         )
 
     return DeviceData(
-        id=device.id,
+        id=str(device.id),
         user_id=device.user_id,
         name=device.name,
         activated=device.activated,
@@ -161,7 +161,7 @@ async def activate(
 async def get_device_key(
     user_id: Annotated[int, Depends(extract_user_id_from_bearer)],
     db_connector: Annotated[DBConnector, Depends(create_db_connector)],
-    device_id: int,
+    device_id: str,
 ) -> DeviceKey:
     device = await db_connector.get_user_device(user_id=user_id, device_id=device_id)
     return DeviceKey(key=device.key)
