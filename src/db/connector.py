@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from db.engine import DBSession
 from db.exceptions import (
     DeviceAlreadyActivated,
+    DeviceAlreadyAssigned,
     DeviceNotExists,
     InvalidSerialNumber,
     LoginAlreadyExists,
@@ -44,6 +45,7 @@ class DBConnector:
             await self._session.commit()
         except IntegrityError:
             raise LoginAlreadyExists()
+        logger.info(f"Registered user {login}.")
 
     async def get_user(
         self,
@@ -57,6 +59,7 @@ class DBConnector:
         )
         user = await self._session.scalar(query)
         if user:
+            logger.info(f"Logged user {login}.")
             return user
 
         raise UserNotExists()
@@ -81,10 +84,10 @@ class DBConnector:
         try:
             self._session.add(device)
             await self._session.commit()
+            await self._session.refresh(device)
         except IntegrityError:
             raise SerialNumberAlreadyExists()
 
-        await self._session.refresh(device)
         logger.info(f"Created new device with ID: {device.id}.")
         return device
 
@@ -95,6 +98,9 @@ class DBConnector:
         name: str,
         key: str,
     ) -> Device:
+        if device.user_id is not None:
+            raise DeviceAlreadyAssigned()
+
         device.user_id = user_id
         device.name = name
         device.key = key
@@ -104,13 +110,14 @@ class DBConnector:
         return device
 
     async def unassign_device(self, device: Device) -> Device:
+        device_name = device.name
         device.user_id = None
         device.name = None
         device.key = None
         device.activated = False
         await self._session.commit()
         await self._session.refresh(device)
-        logger.info(f"Unassigned device {device.name} with ID: {device.id}.")
+        logger.info(f"Unassigned device {device_name} with ID: {device.id}.")
         return device
 
     async def enqueue_activation_request(

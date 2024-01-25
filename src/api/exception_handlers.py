@@ -6,6 +6,7 @@ from auth.exceptions import InvalidEncryption, TokenError
 from auth.tokens import ClientType, InvalidClientType
 from db.exceptions import (
     DeviceAlreadyActivated,
+    DeviceAlreadyAssigned,
     DeviceNotExists,
     InvalidSerialNumber,
     LoginAlreadyExists,
@@ -71,6 +72,16 @@ async def serial_number_already_exists_handler(
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"message": "This serial number already exists."},
+    )
+
+
+async def device_already_assigned_handler(
+    request: Request,
+    exc: DeviceAlreadyAssigned,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"message": "This device is already assigned."},
     )
 
 

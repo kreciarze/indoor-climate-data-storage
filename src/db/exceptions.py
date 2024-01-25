@@ -21,5 +21,9 @@ class DeviceAlreadyActivated(Exception):
     pass
 
 
+class DeviceAlreadyAssigned(Exception):
+    pass
+
+
 class SerialNumberAlreadyExists(Exception):
     pass
