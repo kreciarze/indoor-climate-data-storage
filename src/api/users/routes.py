@@ -1,4 +1,3 @@
-import logging
 from typing import Annotated
 
 from fastapi import Depends, status
@@ -7,9 +6,6 @@ from api.base_router import BaseRouter
 from api.users.contracts import UserBearerToken, UserData
 from auth.tokens import create_token_encoder, TokenEncoder
 from db.connector import create_db_connector, DBConnector
-
-logger = logging.getLogger(__name__)
-
 
 router = BaseRouter(prefix="/users")
 
@@ -26,7 +22,6 @@ async def register(
         login=user_data.login,
         password=user_data.password,
     )
-    logger.info(f"Registered user {user_data.login}.")
 
 
 @router.post(
@@ -43,5 +38,4 @@ async def login(
         password=user_data.password,
     )
     bearer_token = token_encoder.encode_user_token(user_id=user.id)
-    logger.info(f"Logged user {user_data.login}.")
     return UserBearerToken(user_bearer_token=bearer_token)

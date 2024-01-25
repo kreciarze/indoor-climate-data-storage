@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.devices.routes import router as devices_router
 from api.exception_handlers import (
     device_already_activated_handler,
+    device_already_assigned_handler,
     device_not_exists_handler,
     invalid_client_type_handler,
     invalid_encryption_handler,
@@ -21,6 +22,7 @@ from api.users.routes import router as users_router
 from auth.exceptions import InvalidClientType, InvalidEncryption, TokenError
 from db.exceptions import (
     DeviceAlreadyActivated,
+    DeviceAlreadyAssigned,
     DeviceNotExists,
     InvalidSerialNumber,
     LoginAlreadyExists,
@@ -54,6 +56,7 @@ app.add_exception_handler(InvalidEncryption, handler=invalid_encryption_handler)
 app.add_exception_handler(InvalidSerialNumber, handler=invalid_serial_number_handler)
 app.add_exception_handler(DeviceAlreadyActivated, handler=device_already_activated_handler)
 app.add_exception_handler(SerialNumberAlreadyExists, handler=serial_number_already_exists_handler)
+app.add_exception_handler(DeviceAlreadyAssigned, handler=device_already_assigned_handler)
 
 app.include_router(home_router)
 app.include_router(users_router, tags=["users"])
