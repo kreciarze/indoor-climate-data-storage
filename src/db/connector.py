@@ -98,7 +98,7 @@ class DBConnector:
         name: str,
         key: str,
     ) -> Device:
-        if device.user_id is not None:
+        if device.user_id is not None and device.user_id != user_id:
             raise DeviceAlreadyAssigned()
 
         device.user_id = user_id
